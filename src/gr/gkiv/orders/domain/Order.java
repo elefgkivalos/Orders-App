@@ -2,6 +2,9 @@ package gr.gkiv.orders.domain;
 
 import java.sql.PreparedStatement;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class Order {
     private long id;
@@ -10,6 +13,7 @@ public class Order {
     private Channel channel;
     private LocalDateTime createdAt;
     private String notes;
+    private final List<OrderItem> items = new ArrayList<>();
 
     public Order() {}
 
@@ -46,6 +50,10 @@ public class Order {
         return notes;
     }
 
+    public List<OrderItem> getItems() {
+        return Collections.unmodifiableList(items);
+    }
+
     // Public API
 
     public void changeStatus(OrderStatus newStatus) {
@@ -70,5 +78,21 @@ public class Order {
                 throw new InvalidOrderStateException("Cannot change status from " + currentStatus + " to " + newStatus);
             }
         }
+    }
+
+    public void addItem(OrderItem item) {
+        if (status != OrderStatus.NEW) {
+            throw new InvalidOrderStateException("Cannot add item when order status is " + status);
+        }
+
+        if (item == null) {
+            throw new IllegalArgumentException("Order item cannot be null");
+        }
+
+        if (item.getQuantity() <= 0) {
+            throw new IllegalArgumentException("Quantity must be greater than zero");
+        }
+
+        items.add(item);
     }
 }
